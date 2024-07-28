@@ -1,0 +1,28 @@
+from flask import Flask, jsonify
+from kafka import KafkaProducer
+import json
+
+app = Flask(__name__)
+
+# Mock flight data
+flights = [
+    {"id": 1, "flightNumber": "AA123", "status": "On Time", "gate": "A1"},
+    {"id": 2, "flightNumber": "BA456", "status": "Delayed", "gate": "B2"},
+    {"id": 3, "flightNumber": "CA789", "status": "Cancelled", "gate": "C3"},
+]
+
+producer = KafkaProducer(bootstrap_servers='localhost:9092',
+                         value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+
+@app.route('/api/flights', methods=['GET'])
+def get_flights():
+    return jsonify(flights)
+
+@app.route('/api/notify', methods=['POST'])
+def notify():
+    notification = request.json
+    producer.send('flight_notifications', notification)
+    return jsonify({"status": "Notification sent"}), 200
+
+if __name__ == '__main__':
+    app.run(debug=True)
