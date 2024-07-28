@@ -1,0 +1,11 @@
+from kafka import KafkaConsumer
+import json
+
+consumer = KafkaConsumer('flight_notifications',
+                         bootstrap_servers='localhost:9092',
+                         value_deserializer=lambda m: json.loads(m.decode('utf-8')))
+
+for message in consumer:
+    notification = message.value
+    print(f"Sending notification: {notification}")
+    # Implement actual sending logic (SMS, email, push notification, etc.)
